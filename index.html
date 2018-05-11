@@ -68,7 +68,6 @@
                 up: {
                     auto: store.session('data') ? false : true,
                     callback: function(page){
-                        console.log(page.num);
                         store.session('page', page.num);
                         $.ajax({
                             url: 'https://api.douban.com/v2/movie/in_theaters',
