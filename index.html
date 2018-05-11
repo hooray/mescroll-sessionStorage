@@ -102,7 +102,7 @@
             });
             if(store.session('data')){
                 var data = store.session('data');
-                mescroll.setPageNum(store.session('page'));
+                mescroll.setPageNum(store.session('page') + 1);
                 mescroll.endBySize(data.subjects.length % 10 == 0 ? 10 : data.subjects.length % 10, data.total);
                 $('#list').append(template('listTemp', data));
                 mescroll.scrollTo(store.session('scrollTop'), 0);
