@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>热映电影</title>
+    <link rel="stylesheet" href="mescroll/mescroll.min.css">
+    <style media="screen">
+        *{
+            margin: 0;
+            padding: 0;
+        }
+        header{
+            width: 100%;
+            height: 44px;
+            line-height: 44px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+        }
+        .mescroll{
+			position: fixed;
+			top: 44px;
+			bottom: 0;
+            left: 0;
+			height: auto;
+		}
+        #list{
+            display: flex;
+            flex-flow: row wrap;
+            margin: 5px;
+        }
+        #list .item{
+            width: calc(50% - 10px);
+            margin: 5px;
+        }
+        #list .item img{
+            display: block;
+            width: 100%;
+            height: 250px;
+        }
+    </style>
+</head>
+<body>
+    <header>热映电影</header>
+    <div id="mescroll" class="mescroll">
+        <div id="list"></div>
+    </div>
+    <script type="text/html" id="listTemp">
+        {{each subjects item}}
+            <div class="item">
+                <a href="detail.html">
+                    <img src="{{item.images.small}}">
+                </a>
+            </div>
+        {{/each}}
+    </script>
+    <script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://cdn.bootcss.com/store2/2.7.0/store2.min.js"></script>
+    <script src="template-web.js"></script>
+    <script src="mescroll/mescroll.min.js"></script>
+    <script type="text/javascript">
+        $(function(){
+            var mescroll = new MeScroll('mescroll', {
+                down: {
+                    auto: false
+                },
+                up: {
+                    auto: store.session('data') ? false : true,
+                    callback: function(page){
+                        console.log(page.num);
+                        store.session('page', page.num);
+                        $.ajax({
+                            url: 'https://api.douban.com/v2/movie/in_theaters',
+                            dataType: 'jsonp',
+                            data: {
+                                start: (page.num - 1) * page.size,
+                                count: page.size
+                            }
+                        }).done(function(cb){
+                            if(page.num == 1){
+                                $('#list').html('');
+                                store.session('data', null);
+                            }
+                            var data = store.session('data');
+                            if(data){
+                                data.subjects = data.subjects.concat(cb.subjects);
+                            }else{
+                                data = cb;
+                            }
+                            store.session('data', data);
+                            mescroll.endBySize(cb.subjects.length, cb.total);
+                            $('#list').append(template('listTemp', cb));
+                        });
+                    }
+                }
+            });
+            $('#list').on('click', '.item a', function(event) {
+                event.preventDefault();
+                store.session('scrollTop', $('#mescroll').scrollTop());
+                location.href = $(this).attr('href');
+            });
+            if(store.session('data')){
+                var data = store.session('data');
+                mescroll.setPageNum(store.session('page'));
+                mescroll.endBySize(data.subjects.length % 10 == 0 ? 10 : data.subjects.length % 10, data.total);
+                $('#list').append(template('listTemp', data));
+                mescroll.scrollTo(store.session('scrollTop'), 0);
+            }
+        });
+    </script>
+</body>
+</html>
