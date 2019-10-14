@@ -70,7 +70,7 @@
                     callback: function(page){
                         store.session('page', page.num);
                         $.ajax({
-                            url: 'https://api.douban.com/v2/movie/in_theaters',
+                            url: 'https://douban.uieee.com/v2/movie/in_theaters',
                             dataType: 'jsonp',
                             data: {
                                 start: (page.num - 1) * page.size,
